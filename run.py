@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 from functools import partial
+from dotenv import load_dotenv
 
 
 # GET the number of GPUs on the node without importing libs like torch
@@ -490,4 +491,8 @@ def main():
 
 if __name__ == '__main__':
     load_env()
+    load_dotenv("/Users/rx0/Desktop/Thesis/Experiment/Code/JKTDrive-VLMEvalKit/.env")
+    # os.environ()
     main()
+
+# python /Users/rx0/Desktop/Thesis/Experiment/Code/JKTDrive-VLMEvalKit/run.py --config /Users/rx0/Desktop/Thesis/Experiment/Code/JKTDrive-VLMEvalKit/config.json

@@ -1,5 +1,6 @@
 import torch
 import torch.distributed as dist
+import time  # For rate-limiting delay
 from vlmeval.config import supported_VLM
 from vlmeval.utils import track_progress_rich
 from vlmeval.smp import *
@@ -69,8 +70,28 @@ def infer_data_api(model, work_dir, model_name, dataset, index_set=None, api_npr
     gen_func = model.generate
     structs = [dict(message=struct, dataset=dataset_name) for struct in structs]
 
+    # --- MODIFIED SECTION FOR RATE LIMITING ---
     if len(structs):
-        track_progress_rich(gen_func, structs, nproc=api_nproc, chunksize=api_nproc, save=out_file, keys=indices)
+        print(f"Processing {len(structs)} items serially to respect the API rate limit...")
+        for i, struct in enumerate(structs):
+            key = indices[i]
+            try:
+                # Make a single API call
+                response = gen_func(**struct)
+                res[key] = response
+                print(f"  Success for index {key}. Waiting 12 seconds...")
+
+            except Exception as e:
+                print(f"  Error processing index {key}: {e}")
+                res[key] = FAIL_MSG
+
+            # Periodically save the results to the temporary file
+            if (i + 1) % 5 == 0 or (i + 1) == len(structs):
+                dump(res, out_file)
+
+            # The crucial delay to stay under the 5 RPM limit
+            time.sleep(13)
+    # --- END OF MODIFIED SECTION ---
 
     res = load(out_file)
     if index_set is not None:
@@ -115,10 +136,6 @@ def infer_data(model, model_name, work_dir, dataset, out_file, verbose=False, ap
     ):
         kwargs = {'use_vllm': use_vllm}
 
-    # (25.06.05) In newer version of transformers (after 4.50), with device_map='auto' and torchrun launcher,
-    # Transformers automatically adopt TP parallelism, which leads to compatibility problems with VLMEvalKit
-    # (In VLMEvalKit, we use torchrun to launch multiple model instances on a single node).
-    # To bypass this problem, we unset `WORLD_SIZE` before building the model to not use TP parallel.
     ws_bak = os.environ.pop('WORLD_SIZE', None)
     model = supported_VLM[model_name](**kwargs) if isinstance(model, str) else model
     if ws_bak:
@@ -153,7 +170,6 @@ def infer_data(model, model_name, work_dir, dataset, out_file, verbose=False, ap
         else:
             struct = dataset.build_prompt(data.iloc[i])
 
-        # If `SKIP_ERR` flag is set, the model will skip the generation if error is encountered
         if os.environ.get('SKIP_ERR', False) == '1':
             FAIL_MSG = 'Failed to obtain answer'
             try:

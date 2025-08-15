@@ -14,7 +14,7 @@ class GeminiWrapper(BaseAPI):
                  key: str = None,
                  verbose: bool = True,
                  temperature: float = 0.0,
-                 system_prompt: str = None,
+                 system_prompt: str = "Show the Multiple Choice only, expected output is A, B, C, or D",
                  max_tokens: int = 2048,
                  proxy: str = None,
                  backend='genai',
