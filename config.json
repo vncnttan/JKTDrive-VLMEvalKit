@@ -6,6 +6,12 @@
                 "temperature": 0.7
             }
         },
+            "Gemini_2_5_Pro": {
+                "class": "Gemini",
+                "model": "gemini-2.5-pro",
+                "temperature": 0.7
+            }
+        },
     "data": {
         "circular_jktdrive": {
             "class": "ImageMCQDataset",
