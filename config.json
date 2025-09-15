@@ -1,20 +1,17 @@
 {
     "model": {
-        "LLaVA_v1_5_7B_Custom": {
-            "class": "LLaVA",
-            "model_path": "liuhaotian/llava-v1.5-7b",
-            "revision": null,
-            "do_sample": true,
-            "temperature": 0.7
-        }
-    },
+            "GPT_5": {
+                "class": "GPT4V",
+                "model": "gpt-5-2025-08-07",
+                "temperature": 0.7
+            }
+        },
     "data": {
-        "circular_jktdrive": {
+        "circular_urban_flow_complexity_2": {
             "class": "ImageMCQDataset",
-            "dataset": "circular_jktdrive",
+            "dataset": "circular_urban_flow_complexity_2",
             "model": "exact_matching",
-            "dataset_dir": "D:\\2. Pre-Thesis\\Evaluation\\VLMEvalKit\\custom_datasets",
-            "subset_list": ["circular_jktdrive"]
+            "subset_list": ["circular_urban_flow_complexity_2"]
         }
     }
 }
